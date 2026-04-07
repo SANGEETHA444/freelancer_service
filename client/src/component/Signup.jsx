@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-const AF = { navy: '#1a1f2e', orange: '#e8a838', orangeDark: '#d4922a', bg: '#f0f2f8', border: '#e4e7f0', muted: '#6b7280' }
-
-export default function Signup() {
+function Signup() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', confirm: '', role: 'freelancer' })
   const [errors, setErrors] = useState({})
@@ -12,15 +10,16 @@ export default function Signup() {
 
   const validate = () => {
     const e = {}
-    if (!form.firstName.trim()) e.firstName = 'Required'
-    if (!form.lastName.trim()) e.lastName = 'Required'
+    if (!form.firstName.trim()) e.firstName = 'First name is required'
+    if (!form.lastName.trim()) e.lastName = 'Last name is required'
     if (!form.email.trim()) e.email = 'Email is required'
     else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Enter a valid email'
-    if (!form.password) e.password = 'Required'
-    else if (form.password.length < 6) e.password = 'Min 6 characters'
+    if (!form.password) e.password = 'Password is required'
+    else if (form.password.length < 6) e.password = 'At least 6 characters'
     else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(form.password)) e.password = 'Need uppercase, lowercase & number'
-    if (!form.confirm) e.confirm = 'Required'
+    if (!form.confirm) e.confirm = 'Confirm password is required'
     else if (form.password !== form.confirm) e.confirm = 'Passwords do not match'
+    if (!form.role) e.role = 'Select a role'
     return e
   }
 
@@ -52,113 +51,73 @@ export default function Signup() {
     finally { setLoading(false) }
   }
 
-  const inp = (name, err) => ({
-    style: { width: '100%', padding: '11px 14px', borderRadius: 10, border: `1.5px solid ${err ? '#ef4444' : AF.border}`, background: '#f8f9fc', fontSize: 14, color: AF.navy, outline: 'none' },
-    onFocus: e => e.target.style.borderColor = AF.orange,
-    onBlur: e => e.target.style.borderColor = err ? '#ef4444' : AF.border,
-  })
-
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', fontFamily: 'Inter, sans-serif' }}>
-      {/* Left panel */}
-      <div style={{ width: '40%', background: AF.navy, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '48px' }} className="hidden lg:flex">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: AF.orange, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="22" height="22" fill="none" stroke="white" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    <div className="t-auth-wrap">
+      <div className="t-auth-card" style={{ maxWidth: 500 }}>
+        <div className="t-auth-logo">
+          <div className="t-auth-logo-icon">
+            <svg width="18" height="18" fill="none" stroke="var(--green)" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
-          <span style={{ color: 'white', fontWeight: 700, fontSize: 20 }}>AgentForge</span>
+          <span className="t-auth-logo-text">FreeLance</span>
         </div>
-        <div>
-          <h1 style={{ color: 'white', fontSize: 34, fontWeight: 800, lineHeight: 1.25, marginBottom: 14 }}>
-            Start your journey<br /><span style={{ color: AF.orange }}>today for free</span>
-          </h1>
-          <p style={{ color: '#8b92a9', fontSize: 15, lineHeight: 1.7 }}>Join thousands of freelancers and clients building great things together.</p>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {['No hidden fees', 'Secure payments', 'Top-rated talent', 'Fast hiring'].map(f => (
-            <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(232,168,56,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <svg width="10" height="10" fill={AF.orange} viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-              </div>
-              <span style={{ color: '#b0b7c9', fontSize: 14 }}>{f}</span>
+        <p className="t-auth-eyebrow">Create account</p>
+        <h1 className="t-auth-title">Sign up for a new account</h1>
+        <p className="t-auth-sub">Complete the form below and log in to continue.</p>
+
+        {apiError && <div className="t-alert t-alert-error">{apiError}</div>}
+
+        <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label className="t-label">First Name</label>
+              <input name="firstName" value={form.firstName} onChange={handleChange} placeholder="First name" className={`t-input${errors.firstName ? ' err' : ''}`} />
+              {errors.firstName && <p className="t-field-err">{errors.firstName}</p>}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Right panel */}
-      <div style={{ flex: 1, background: AF.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', overflowY: 'auto' }}>
-        <div style={{ width: '100%', maxWidth: 460, paddingBlock: 32 }}>
-          <div style={{ background: 'white', borderRadius: 16, padding: '36px 32px', boxShadow: '0 4px 24px rgba(26,31,46,0.08)', border: `1px solid ${AF.border}` }}>
-            <p style={{ color: AF.orange, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Get started</p>
-            <h2 style={{ color: AF.navy, fontSize: 24, fontWeight: 800, marginBottom: 6 }}>Create your account</h2>
-            <p style={{ color: AF.muted, fontSize: 14, marginBottom: 24 }}>Fill in the details below to join AgentForge.</p>
-
-            {apiError && (
-              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '12px 16px', marginBottom: 18, color: '#dc2626', fontSize: 13 }}>{apiError}</div>
-            )}
-
-            <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                {[['firstName', 'First Name', 'John'], ['lastName', 'Last Name', 'Doe']].map(([n, l, ph]) => (
-                  <div key={n}>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: AF.navy, marginBottom: 5 }}>{l}</label>
-                    <input name={n} value={form[n]} onChange={handleChange} placeholder={ph} {...inp(n, errors[n])} />
-                    {errors[n] && <p style={{ color: '#ef4444', fontSize: 11, marginTop: 3 }}>{errors[n]}</p>}
-                  </div>
-                ))}
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: AF.navy, marginBottom: 5 }}>Email address</label>
-                <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@example.com" {...inp('email', errors.email)} />
-                {errors.email && <p style={{ color: '#ef4444', fontSize: 11, marginTop: 3 }}>{errors.email}</p>}
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                {[['password', 'Password', 'password'], ['confirm', 'Confirm Password', 'password']].map(([n, l, t]) => (
-                  <div key={n}>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: AF.navy, marginBottom: 5 }}>{l}</label>
-                    <input name={n} type={t} value={form[n]} onChange={handleChange} placeholder="••••••••" {...inp(n, errors[n])} />
-                    {errors[n] && <p style={{ color: '#ef4444', fontSize: 11, marginTop: 3 }}>{errors[n]}</p>}
-                  </div>
-                ))}
-              </div>
-
-              {/* Role selector */}
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: AF.navy, marginBottom: 8 }}>I am a…</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  {[['freelancer', 'Freelancer', 'Looking for work'], ['client', 'Client', 'Hiring talent']].map(([val, label, sub]) => (
-                    <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, cursor: 'pointer', border: `2px solid ${form.role === val ? AF.orange : AF.border}`, background: form.role === val ? 'rgba(232,168,56,0.06)' : '#f8f9fc', transition: 'all 0.15s' }}>
-                      <input type="radio" name="role" value={val} checked={form.role === val} onChange={handleChange} style={{ display: 'none' }} />
-                      <div style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${form.role === val ? AF.orange : '#c4c9d8'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        {form.role === val && <div style={{ width: 8, height: 8, borderRadius: '50%', background: AF.orange }} />}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: AF.navy }}>{label}</div>
-                        <div style={{ fontSize: 11, color: AF.muted }}>{sub}</div>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <button type="submit" disabled={loading}
-                style={{ width: '100%', padding: '12px', borderRadius: 10, background: loading ? '#f0c060' : AF.orange, color: 'white', fontWeight: 700, fontSize: 14, border: 'none', marginTop: 4 }}
-                onMouseEnter={e => { if (!loading) e.target.style.background = AF.orangeDark }}
-                onMouseLeave={e => { if (!loading) e.target.style.background = AF.orange }}>
-                {loading ? 'Creating account…' : 'Create Account'}
-              </button>
-            </form>
-
-            <p style={{ textAlign: 'center', fontSize: 13, color: AF.muted, marginTop: 18 }}>
-              Already have an account?{' '}
-              <Link to="/login" style={{ color: AF.orange, fontWeight: 600 }}>Sign in</Link>
-            </p>
+            <div>
+              <label className="t-label">Last Name</label>
+              <input name="lastName" value={form.lastName} onChange={handleChange} placeholder="Last name" className={`t-input${errors.lastName ? ' err' : ''}`} />
+              {errors.lastName && <p className="t-field-err">{errors.lastName}</p>}
+            </div>
           </div>
-        </div>
+          <div>
+            <label className="t-label">Email</label>
+            <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="Enter email" className={`t-input${errors.email ? ' err' : ''}`} />
+            {errors.email && <p className="t-field-err">{errors.email}</p>}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label className="t-label">Password</label>
+              <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Enter password" className={`t-input${errors.password ? ' err' : ''}`} />
+              {errors.password && <p className="t-field-err">{errors.password}</p>}
+            </div>
+            <div>
+              <label className="t-label">Confirm Password</label>
+              <input name="confirm" type="password" value={form.confirm} onChange={handleChange} placeholder="Confirm password" className={`t-input${errors.confirm ? ' err' : ''}`} />
+              {errors.confirm && <p className="t-field-err">{errors.confirm}</p>}
+            </div>
+          </div>
+          <div>
+            <label className="t-label">Role</label>
+            <select name="role" value={form.role} onChange={handleChange} className="t-select">
+              <option value="freelancer">Freelancer</option>
+              <option value="client">Client</option>
+            </select>
+            {errors.role && <p className="t-field-err">{errors.role}</p>}
+          </div>
+          <button type="submit" disabled={loading} className="t-btn t-btn-primary t-btn-lg t-btn-full" style={{ marginTop: 4 }}>
+            {loading ? 'Signing up…' : 'Sign up'}
+          </button>
+        </form>
+
+        <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--muted)', marginTop: 18 }}>
+          Already a user?{' '}
+          <Link to="/login" style={{ color: 'var(--green-dark)', fontWeight: 600 }}>Login</Link>
+        </p>
       </div>
     </div>
   )
 }
+
+export default Signup

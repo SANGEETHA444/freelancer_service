@@ -15,466 +15,169 @@ function CustomerMyActivity() {
   const [selectedProposal, setSelectedProposal] = useState(null)
   const [reviewLoading, setReviewLoading] = useState(false)
 
-  useEffect(() => {
-    fetchProjectsAndProposals()
-  }, [])
+  useEffect(() => { fetchProjectsAndProposals() }, [])
 
   const fetchProjectsAndProposals = async () => {
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
       const userId = localStorage.getItem('userId')
-
-      if (!token) {
-        navigate('/login')
-        return
-      }
-
-      // Fetch client's projects
-      const projectsResponse = await fetch(
-        `http://localhost:5000/api/projects/client/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-
-      const projectsData = await projectsResponse.json()
-
-      if (!projectsResponse.ok) {
-        setError(projectsData.message || 'Failed to fetch projects')
-        setLoading(false)
-        return
-      }
-
+      if (!token) { navigate('/login'); return }
+      const projectsRes = await fetch(`http://localhost:5000/api/projects/client/${userId}`, { headers: { Authorization: `Bearer ${token}` } })
+      const projectsData = await projectsRes.json()
+      if (!projectsRes.ok) { setError(projectsData.message || 'Failed to fetch projects'); setLoading(false); return }
       const projectsList = projectsData.data || []
       setProjects(projectsList)
-
-      // Fetch proposals for each project
       const proposalsMap = {}
       for (const project of projectsList) {
         try {
-          const proposalsResponse = await fetch(
-            `http://localhost:5000/api/proposals/project/${project._id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          )
-
-          const proposalsData = await proposalsResponse.json()
-
-          if (proposalsResponse.ok) {
-            proposalsMap[project._id] = proposalsData.data || []
-          }
-        } catch (err) {
-          console.error(`Failed to fetch proposals for project ${project._id}:`, err)
-        }
+          const pRes = await fetch(`http://localhost:5000/api/proposals/project/${project._id}`, { headers: { Authorization: `Bearer ${token}` } })
+          const pData = await pRes.json()
+          if (pRes.ok) proposalsMap[project._id] = pData.data || []
+        } catch { }
       }
-
-      setProposals(proposalsMap)
-      setError('')
-    } catch (err) {
-      console.error('Error:', err)
-      setError('Network error. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+      setProposals(proposalsMap); setError('')
+    } catch { setError('Network error. Please try again.') }
+    finally { setLoading(false) }
   }
 
   const handleAcceptProposal = async (proposalId, projectId) => {
     setActioningProposal(proposalId)
     try {
       const token = localStorage.getItem('token')
-
-      const response = await fetch(
-        `http://localhost:5000/api/proposals/${proposalId}/accept`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            feedback: feedbackForm,
-          }),
-        }
-      )
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        alert(data.message || 'Failed to accept proposal')
-        return
-      }
-
-      // Update the proposals list
-      setProposals((prev) => ({
-        ...prev,
-        [projectId]: prev[projectId].map((p) =>
-          p._id === proposalId ? data.data : p
-        ),
-      }))
-
-      setFeedbackForm('')
-      alert('Proposal accepted successfully!')
-    } catch (err) {
-      console.error('Accept proposal error:', err)
-      alert('Network error. Please try again.')
-    } finally {
-      setActioningProposal(null)
-    }
+      const res = await fetch(`http://localhost:5000/api/proposals/${proposalId}/accept`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ feedback: feedbackForm }) })
+      const data = await res.json()
+      if (!res.ok) { alert(data.message || 'Failed to accept proposal'); return }
+      setProposals(prev => ({ ...prev, [projectId]: prev[projectId].map(p => p._id === proposalId ? data.data : p) }))
+      setFeedbackForm(''); alert('Proposal accepted successfully!')
+    } catch { alert('Network error. Please try again.') }
+    finally { setActioningProposal(null) }
   }
 
   const handleRejectProposal = async (proposalId, projectId) => {
-    if (!window.confirm('Are you sure you want to reject this proposal?')) {
-      return
-    }
-
+    if (!window.confirm('Are you sure you want to reject this proposal?')) return
     setActioningProposal(proposalId)
     try {
       const token = localStorage.getItem('token')
-
-      const response = await fetch(
-        `http://localhost:5000/api/proposals/${proposalId}/reject`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            feedback: feedbackForm,
-          }),
-        }
-      )
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        alert(data.message || 'Failed to reject proposal')
-        return
-      }
-
-      // Update the proposals list
-      setProposals((prev) => ({
-        ...prev,
-        [projectId]: prev[projectId].map((p) =>
-          p._id === proposalId ? data.data : p
-        ),
-      }))
-
-      setFeedbackForm('')
-      alert('Proposal rejected successfully!')
-    } catch (err) {
-      console.error('Reject proposal error:', err)
-      alert('Network error. Please try again.')
-    } finally {
-      setActioningProposal(null)
-    }
+      const res = await fetch(`http://localhost:5000/api/proposals/${proposalId}/reject`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ feedback: feedbackForm }) })
+      const data = await res.json()
+      if (!res.ok) { alert(data.message || 'Failed to reject proposal'); return }
+      setProposals(prev => ({ ...prev, [projectId]: prev[projectId].map(p => p._id === proposalId ? data.data : p) }))
+      setFeedbackForm(''); alert('Proposal rejected successfully!')
+    } catch { alert('Network error. Please try again.') }
+    finally { setActioningProposal(null) }
   }
 
-  const handleOpenReviewModal = (proposal, project) => {
-    setSelectedProposal({ ...proposal, project })
-    setReviewModalOpen(true)
-  }
-
-  const handleSubmitReview = async (reviewData) => {
+  const handleSubmitReview = async reviewData => {
     setReviewLoading(true)
     try {
       const token = localStorage.getItem('token')
-
-      const response = await fetch('http://localhost:5000/api/reviews', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(reviewData),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to submit review')
-      }
-
-      alert('Review submitted successfully!')
-      setReviewModalOpen(false)
-      setSelectedProposal(null)
-    } catch (err) {
-      console.error('Submit review error:', err)
-      throw err
-    } finally {
-      setReviewLoading(false)
-    }
+      const res = await fetch('http://localhost:5000/api/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(reviewData) })
+      if (!res.ok) { const d = await res.json(); throw new Error(d.message || 'Failed to submit review') }
+      alert('Review submitted successfully!'); setReviewModalOpen(false); setSelectedProposal(null)
+    } catch (err) { throw err }
+    finally { setReviewLoading(false) }
   }
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
+  const formatDate = d => new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+  const statusBadge = s => ({ pending: 't-badge-yellow', accepted: 't-badge-green', rejected: 't-badge-red' }[s] || 't-badge-gray')
 
-  const getStatusBadgeColor = (status) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-700'
-      case 'accepted':
-        return 'bg-green-100 text-green-700'
-      case 'rejected':
-        return 'bg-red-100 text-red-700'
-      default:
-        return 'bg-slate-100 text-slate-700'
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex justify-center py-12">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-sky-600"></div>
-          <p className="mt-4 text-slate-600">Loading activity...</p>
-        </div>
-      </div>
-    )
-  }
+  if (loading) return <div className="t-spinner"><div className="t-spin" /><span>Loading activity…</span></div>
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-slate-950">My Activity</h1>
-          <p className="mt-2 text-slate-600">
-            Track proposals and manage freelancer requests for your projects
-          </p>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-600">
-            {error}
-          </div>
-        )}
-
-        {/* Projects and Proposals */}
-        {projects.length === 0 ? (
-          <div className="rounded-lg bg-white p-12 text-center shadow-sm">
-            <p className="text-slate-600">
-              You haven't posted any projects yet.{' '}
-              <button
-                onClick={() => navigate('/customer/new-project')}
-                className="font-semibold text-sky-600 hover:text-sky-700"
-              >
-                Create a project
-              </button>{' '}
-              to receive proposals from freelancers.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {projects.map((project) => {
-              const projectProposals = proposals[project._id] || []
-              const pendingCount = projectProposals.filter(
-                (p) => p.status === 'pending'
-              ).length
-              const acceptedCount = projectProposals.filter(
-                (p) => p.status === 'accepted'
-              ).length
-
-              return (
-                <div
-                  key={project._id}
-                  className="rounded-lg border border-slate-200 bg-white shadow-sm"
-                >
-                  {/* Project Header */}
-                  <button
-                    onClick={() =>
-                      setExpandedProject(
-                        expandedProject === project._id ? null : project._id
-                      )
-                    }
-                    className="w-full p-6 text-left transition hover:bg-slate-50"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold text-slate-950">
-                          {project.title}
-                        </h3>
-                        <div className="mt-2 flex gap-4 text-sm">
-                          <span className="text-slate-600">
-                            Status:{' '}
-                            <span className="font-medium text-slate-900">
-                              {project.status.charAt(0).toUpperCase() +
-                                project.status.slice(1)}
-                            </span>
-                          </span>
-                          <span className="text-slate-600">
-                            Proposals:{' '}
-                            <span className="font-medium text-slate-900">
-                              {projectProposals.length}
-                            </span>
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        {pendingCount > 0 && (
-                          <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-semibold text-yellow-700">
-                            {pendingCount} New
-                          </span>
-                        )}
-                        {acceptedCount > 0 && (
-                          <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
-                            {acceptedCount} Accepted
-                          </span>
-                        )}
-                        <span className="text-slate-400">
-                          {expandedProject === project._id ? '▼' : '▶'}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Proposals List */}
-                  {expandedProject === project._id && (
-                    <div className="border-t border-slate-200">
-                      {projectProposals.length === 0 ? (
-                        <div className="p-6 text-center text-slate-600">
-                          No proposals received yet for this project.
-                        </div>
-                      ) : (
-                        <div className="divide-y divide-slate-200">
-                          {projectProposals.map((proposal) => (
-                            <div key={proposal._id} className="p-6">
-                              <div className="flex items-start justify-between">
-                                {/* Freelancer Info */}
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-4">
-                                    <div className="min-h-12 min-w-12 rounded-full bg-sky-200"></div>
-                                    <div>
-                                      <h4 className="font-semibold text-slate-950">
-                                        {proposal.freelancer?.firstName}{' '}
-                                        {proposal.freelancer?.lastName}
-                                      </h4>
-                                      <p className="text-xs text-slate-500">
-                                        {proposal.freelancer?.experience || 'Professional'}
-                                      </p>
-                                    </div>
-                                  </div>
-
-                                  {/* Proposal Details */}
-                                  <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                                    <div>
-                                      <p className="text-xs text-slate-600">Bid Amount</p>
-                                      <p className="mt-1 font-bold text-sky-600">
-                                        ${proposal.bidAmount?.toLocaleString()}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <p className="text-xs text-slate-600">Delivery</p>
-                                      <p className="mt-1 font-semibold text-slate-900">
-                                        {proposal.deliveryDays} days
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <p className="text-xs text-slate-600">Status</p>
-                                      <span
-                                        className={`mt-1 inline-block rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeColor(
-                                          proposal.status
-                                        )}`}
-                                      >
-                                        {proposal.status.charAt(0).toUpperCase() +
-                                          proposal.status.slice(1)}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  {/* Cover Letter */}
-                                  <div className="mt-4">
-                                    <p className="text-xs font-medium text-slate-600">
-                                      Cover Letter
-                                    </p>
-                                    <p className="mt-2 text-sm text-slate-700">
-                                      {proposal.message}
-                                    </p>
-                                  </div>
-
-                                  {/* Submitted Date */}
-                                  <p className="mt-3 text-xs text-slate-500">
-                                    Submitted {formatDate(proposal.createdAt)}
-                                  </p>
-                                </div>
-
-                                {/* Actions */}
-                                {proposal.status === 'pending' && (
-                                  <div className="ml-4 flex flex-col gap-2 sm:w-32">
-                                    <button
-                                      onClick={() =>
-                                        handleAcceptProposal(
-                                          proposal._id,
-                                          project._id
-                                        )
-                                      }
-                                      disabled={actioningProposal === proposal._id}
-                                      className="rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
-                                    >
-                                      Accept
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        handleRejectProposal(
-                                          proposal._id,
-                                          project._id
-                                        )
-                                      }
-                                      disabled={actioningProposal === proposal._id}
-                                      className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 disabled:opacity-50"
-                                    >
-                                      Reject
-                                    </button>
-                                  </div>
-                                )}
-                                {proposal.status === 'accepted' && (
-                                  <div className="ml-4">
-                                    <button
-                                      onClick={() => handleOpenReviewModal(proposal, project)}
-                                      className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-                                    >
-                                      Leave Review
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
+    <div>
+      <div className="t-page-header">
+        <h1 className="t-page-title">My Activity</h1>
+        <p className="t-page-subtitle">Track proposals and manage freelancer requests for your projects</p>
       </div>
 
-      {/* Review Modal */}
+      {error && <div className="t-alert t-alert-error">{error}</div>}
+
+      {projects.length === 0 ? (
+        <div className="t-card"><div className="t-empty">
+          <p className="t-empty-title">No projects yet</p>
+          <p className="t-empty-text">Create a project to receive proposals from freelancers.</p>
+          <button onClick={() => navigate('/customer/new-project')} className="t-btn t-btn-primary" style={{ marginTop: 14 }}>Create a project</button>
+        </div></div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {projects.map(project => {
+            const projectProposals = proposals[project._id] || []
+            const pendingCount = projectProposals.filter(p => p.status === 'pending').length
+            const acceptedCount = projectProposals.filter(p => p.status === 'accepted').length
+            return (
+              <div key={project._id} className="t-card">
+                <button onClick={() => setExpandedProject(expandedProject === project._id ? null : project._id)}
+                  style={{ width: '100%', padding: '18px 22px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>{project.title}</h3>
+                      <div style={{ display: 'flex', gap: 16, fontSize: 13, color: 'var(--muted)' }}>
+                        <span>Status: <span style={{ fontWeight: 600, color: 'var(--green-dark)' }}>{project.status.charAt(0).toUpperCase() + project.status.slice(1)}</span></span>
+                        <span>Proposals: <span style={{ fontWeight: 600, color: 'var(--text)' }}>{projectProposals.length}</span></span>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {pendingCount > 0 && <span className="t-badge t-badge-yellow">{pendingCount} New</span>}
+                      {acceptedCount > 0 && <span className="t-badge t-badge-green">{acceptedCount} Accepted</span>}
+                      <span style={{ color: 'var(--muted)', fontSize: 12 }}>{expandedProject === project._id ? '▼' : '▶'}</span>
+                    </div>
+                  </div>
+                </button>
+
+                {expandedProject === project._id && (
+                  <div style={{ borderTop: '1px solid var(--border)' }}>
+                    {projectProposals.length === 0 ? (
+                      <div className="t-empty" style={{ padding: '28px 22px' }}><p className="t-empty-text">No proposals received yet.</p></div>
+                    ) : (
+                      projectProposals.map((proposal, i) => (
+                        <div key={proposal._id} style={{ padding: '18px 22px', borderBottom: i < projectProposals.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                                <div className="t-avatar" style={{ width: 40, height: 40, fontSize: 14, flexShrink: 0 }}>
+                                  {`${proposal.freelancer?.firstName?.[0] || ''}${proposal.freelancer?.lastName?.[0] || ''}`.toUpperCase()}
+                                </div>
+                                <div>
+                                  <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{proposal.freelancer?.firstName} {proposal.freelancer?.lastName}</p>
+                                  <p style={{ fontSize: 12, color: 'var(--muted)' }}>{proposal.freelancer?.experience || 'Professional'}</p>
+                                </div>
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 12 }}>
+                                <div><p style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>Bid Amount</p><p style={{ fontSize: 16, fontWeight: 800, color: 'var(--green-dark)' }}>${proposal.bidAmount?.toLocaleString()}</p></div>
+                                <div><p style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>Delivery</p><p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{proposal.deliveryDays} days</p></div>
+                                <div><p style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>Status</p><span className={`t-badge ${statusBadge(proposal.status)}`}>{proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}</span></div>
+                              </div>
+                              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 6 }}>{proposal.message}</p>
+                              <p style={{ fontSize: 11, color: 'var(--muted)' }}>Submitted {formatDate(proposal.createdAt)}</p>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+                              {proposal.status === 'pending' && (
+                                <>
+                                  <button onClick={() => handleAcceptProposal(proposal._id, project._id)} disabled={actioningProposal === proposal._id} className="t-btn t-btn-success t-btn-sm">Accept</button>
+                                  <button onClick={() => handleRejectProposal(proposal._id, project._id)} disabled={actioningProposal === proposal._id} className="t-btn t-btn-danger t-btn-sm">Reject</button>
+                                </>
+                              )}
+                              {proposal.status === 'accepted' && (
+                                <button onClick={() => { setSelectedProposal({ ...proposal, project }); setReviewModalOpen(true) }} className="t-btn t-btn-primary t-btn-sm">Leave Review</button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
       {selectedProposal && (
-        <ReviewModal
-          isOpen={reviewModalOpen}
-          freelancer={selectedProposal.freelancer}
-          project={selectedProposal.project}
-          onClose={() => {
-            setReviewModalOpen(false)
-            setSelectedProposal(null)
-          }}
-          onSubmit={handleSubmitReview}
-          isLoading={reviewLoading}
-        />
+        <ReviewModal isOpen={reviewModalOpen} freelancer={selectedProposal.freelancer} project={selectedProposal.project}
+          onClose={() => { setReviewModalOpen(false); setSelectedProposal(null) }}
+          onSubmit={handleSubmitReview} isLoading={reviewLoading} />
       )}
     </div>
   )

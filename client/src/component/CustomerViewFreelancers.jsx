@@ -1,10 +1,8 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const CustomerViewFreelancers = () => {
   const navigate = useNavigate()
-  const token = localStorage.getItem('token')
-
   const [freelancers, setFreelancers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -16,410 +14,175 @@ const CustomerViewFreelancers = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [selectedFreelancer, setSelectedFreelancer] = useState(null)
 
-  const allSkills = [
-    'React', 'Node.js', 'MongoDB', 'Python', 'JavaScript', 'TypeScript',
-    'Vue.js', 'Angular', 'Express', 'Django', 'PostgreSQL', 'MySQL',
-    'AWS', 'Docker', 'GraphQL', 'REST API', 'HTML/CSS', 'Web Design'
-  ]
+  const allSkills = ['React','Node.js','MongoDB','Python','JavaScript','TypeScript','Vue.js','Angular','Express','Django','PostgreSQL','MySQL','AWS','Docker','GraphQL','REST API','HTML/CSS','Web Design']
 
-  useEffect(() => {
-    fetchFreelancers()
-  }, [page, selectedSkill, selectedExperience, minRating])
+  useEffect(() => { fetchFreelancers() }, [page, selectedSkill, selectedExperience, minRating])
 
   const fetchFreelancers = async () => {
     try {
-      setLoading(true)
-      setError('')
-
+      setLoading(true); setError('')
       let url = `http://localhost:5000/api/users/freelancers?page=${page}&limit=12`
-
-      if (selectedSkill) {
-        url += `&skills=${encodeURIComponent(selectedSkill)}`
-      }
-      if (selectedExperience) {
-        url += `&experience=${selectedExperience}`
-      }
-      if (minRating) {
-        url += `&minRating=${minRating}`
-      }
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch freelancers')
-      }
-
-      const data = await response.json()
-      setFreelancers(data.data || [])
-      setTotalPages(data.pagination?.pages || 1)
-    } catch (err) {
-      setError(err.message)
-      setFreelancers([])
-    } finally {
-      setLoading(false)
-    }
+      if (selectedSkill) url += `&skills=${encodeURIComponent(selectedSkill)}`
+      if (selectedExperience) url += `&experience=${selectedExperience}`
+      if (minRating) url += `&minRating=${minRating}`
+      const res = await fetch(url, { headers: { 'Content-Type': 'application/json' } })
+      if (!res.ok) throw new Error('Failed to fetch freelancers')
+      const data = await res.json()
+      setFreelancers(data.data || []); setTotalPages(data.pagination?.pages || 1)
+    } catch (err) { setError(err.message); setFreelancers([]) }
+    finally { setLoading(false) }
   }
 
-  const handleSearch = async (e) => {
+  const handleSearch = async e => {
     e.preventDefault()
     if (!searchQuery.trim()) return
-
     try {
-      setLoading(true)
-      setError('')
-
-      const response = await fetch(
-        `http://localhost:5000/api/users/search?q=${encodeURIComponent(searchQuery)}&role=freelancer`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      )
-
-      if (!response.ok) {
-        throw new Error('Search failed')
-      }
-
-      const data = await response.json()
-      setFreelancers(data.data || [])
-      setPage(1)
-      setSelectedSkill('')
-      setSelectedExperience('')
-      setMinRating('')
-    } catch (err) {
-      setError(err.message)
-      setFreelancers([])
-    } finally {
-      setLoading(false)
-    }
+      setLoading(true); setError('')
+      const res = await fetch(`http://localhost:5000/api/users/search?q=${encodeURIComponent(searchQuery)}&role=freelancer`, { headers: { 'Content-Type': 'application/json' } })
+      if (!res.ok) throw new Error('Search failed')
+      const data = await res.json()
+      setFreelancers(data.data || []); setPage(1); setSelectedSkill(''); setSelectedExperience(''); setMinRating('')
+    } catch (err) { setError(err.message); setFreelancers([]) }
+    finally { setLoading(false) }
   }
 
-  const getInitials = (firstName, lastName) => {
-    return `${(firstName || 'F')[0]}${(lastName || 'L')[0]}`.toUpperCase()
-  }
-
-  const handleViewProfile = (freelancer) => {
-    setSelectedFreelancer(freelancer)
-  }
+  const getInitials = (f, l) => `${(f || 'F')[0]}${(l || 'L')[0]}`.toUpperCase()
 
   if (selectedFreelancer) {
+    const f = selectedFreelancer
     return (
-      <div className="container mx-auto px-4 py-8">
-        <button
-          onClick={() => setSelectedFreelancer(null)}
-          className="mb-6 text-blue-600 hover:text-blue-700 font-medium"
-        >
-          ← Back to Freelancers
-        </button>
-
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
-          {/* Header */}
-          <div className="flex justify-between items-start mb-8">
-            <div className="flex items-center gap-6">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                {getInitials(selectedFreelancer.firstName, selectedFreelancer.lastName)}
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  {selectedFreelancer.firstName} {selectedFreelancer.lastName}
-                </h1>
-                <p className="text-xl text-blue-600 mt-1">{selectedFreelancer.title || 'Freelancer'}</p>
-                <div className="flex items-center gap-4 mt-3">
-                  {selectedFreelancer.rating && (
-                    <div className="flex items-center gap-1">
-                      <span className="text-yellow-400">★</span>
-                      <span className="font-medium">{selectedFreelancer.rating.toFixed(1)}</span>
-                    </div>
-                  )}
-                  <span className="text-sm text-gray-600">
-                    ${selectedFreelancer.hourlyRate}/hr
-                  </span>
+      <div>
+        <button onClick={() => setSelectedFreelancer(null)} className="t-btn t-btn-outline t-btn-sm" style={{ marginBottom: 20 }}>← Back to Freelancers</button>
+        <div className="t-card" style={{ maxWidth: 720 }}>
+          <div className="t-banner" />
+          <div className="t-profile-avatar">{getInitials(f.firstName, f.lastName)}</div>
+          <div style={{ padding: '10px 22px 22px' }}>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', marginBottom: 2 }}>{f.firstName} {f.lastName}</h1>
+            <p style={{ fontSize: 15, color: 'var(--green-dark)', fontWeight: 600 }}>{f.title || 'Freelancer'}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 8 }}>
+              {f.rating > 0 && <span style={{ color: '#fbbf24', fontWeight: 700 }}>★ {f.rating.toFixed(1)}</span>}
+              <span style={{ fontSize: 14, color: 'var(--muted)' }}>${f.hourlyRate}/hr</span>
+            </div>
+          </div>
+          <div style={{ borderTop: '1px solid var(--border)', padding: 22 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginBottom: 18 }}>
+              {[['Experience', f.experience], ['Availability', f.availability], ['Email', f.email]].map(([l, v]) => (
+                <div key={l}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>{l}</p>
+                  <p style={{ fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>{v}</p>
                 </div>
+              ))}
+            </div>
+            {f.bio && <div style={{ marginBottom: 18 }}><p style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>About</p><p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6 }}>{f.bio}</p></div>}
+            {f.skills?.length > 0 && (
+              <div style={{ marginBottom: 18 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 7 }}>Skills</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{f.skills.map((s, i) => <span key={i} className="t-tag">{s}</span>)}</div>
               </div>
-            </div>
+            )}
+            {f.portfolio && <a href={f.portfolio} target="_blank" rel="noopener noreferrer" className="t-btn t-btn-outline t-btn-sm">View Portfolio →</a>}
           </div>
-
-          {/* Details */}
-          <div className="grid grid-cols-2 gap-8 mb-8 pb-8 border-b border-gray-200">
-            <div>
-              <label className="text-sm font-medium text-gray-600">Experience Level</label>
-              <p className="text-lg text-gray-900 mt-1 capitalize">{selectedFreelancer.experience}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">Availability</label>
-              <p className="text-lg text-gray-900 mt-1 capitalize">{selectedFreelancer.availability}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">Email</label>
-              <p className="text-lg text-gray-900 mt-1">{selectedFreelancer.email}</p>
-            </div>
-          </div>
-
-          {/* Bio */}
-          {selectedFreelancer.bio && (
-            <div className="mb-8">
-              <label className="text-sm font-medium text-gray-600">About</label>
-              <p className="text-gray-900 mt-2">{selectedFreelancer.bio}</p>
-            </div>
-          )}
-
-          {/* Skills */}
-          {selectedFreelancer.skills && selectedFreelancer.skills.length > 0 && (
-            <div className="mb-8">
-              <label className="text-sm font-medium text-gray-600 block mb-3">Skills</label>
-              <div className="flex flex-wrap gap-2">
-                {selectedFreelancer.skills.map((skill, index) => (
-                  <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Portfolio */}
-          {selectedFreelancer.portfolio && (
-            <div className="mb-8">
-              <a
-                href={selectedFreelancer.portfolio}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                View Portfolio →
-              </a>
-            </div>
-          )}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Browse Freelancers</h1>
-        <p className="text-gray-600">Find the perfect freelancer for your project</p>
+    <div>
+      <div className="t-page-header">
+        <h1 className="t-page-title">Browse Freelancers</h1>
+        <p className="t-page-subtitle">Find the perfect freelancer for your project</p>
       </div>
 
-      {/* Search Bar */}
-      <form onSubmit={handleSearch} className="mb-8">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name, title, email..."
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            type="submit"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-          >
-            Search
-          </button>
-        </div>
+      {/* Search */}
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
+        <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search by name, title, email…" className="t-input" style={{ flex: 1 }} />
+        <button type="submit" className="t-btn t-btn-primary">Search</button>
       </form>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Skill</label>
-          <select
-            value={selectedSkill}
-            onChange={(e) => {
-              setSelectedSkill(e.target.value)
-              setPage(1)
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Skills</option>
-            {allSkills.map((skill) => (
-              <option key={skill} value={skill}>
-                {skill}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Experience</label>
-          <select
-            value={selectedExperience}
-            onChange={(e) => {
-              setSelectedExperience(e.target.value)
-              setPage(1)
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Levels</option>
-            <option value="entry">Entry Level</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="expert">Expert</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Min Rating</label>
-          <select
-            value={minRating}
-            onChange={(e) => {
-              setMinRating(e.target.value)
-              setPage(1)
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Any Rating</option>
-            <option value="3">3+ Stars</option>
-            <option value="3.5">3.5+ Stars</option>
-            <option value="4">4+ Stars</option>
-            <option value="4.5">4.5+ Stars</option>
-          </select>
-        </div>
-
-        <div>
-          <button
-            onClick={() => {
-              setSelectedSkill('')
-              setSelectedExperience('')
-              setMinRating('')
-              setSearchQuery('')
-              setPage(1)
-              fetchFreelancers()
-            }}
-            className="w-full h-10 mt-6 px-3 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium"
-          >
-            Clear Filters
-          </button>
+      <div className="t-card" style={{ padding: '16px 20px', marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 12 }}>
+          <div>
+            <label className="t-label">Skill</label>
+            <select value={selectedSkill} onChange={e => { setSelectedSkill(e.target.value); setPage(1) }} className="t-select">
+              <option value="">All Skills</option>
+              {allSkills.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="t-label">Experience</label>
+            <select value={selectedExperience} onChange={e => { setSelectedExperience(e.target.value); setPage(1) }} className="t-select">
+              <option value="">All Levels</option>
+              <option value="Beginner">Entry Level</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Expert">Expert</option>
+            </select>
+          </div>
+          <div>
+            <label className="t-label">Min Rating</label>
+            <select value={minRating} onChange={e => { setMinRating(e.target.value); setPage(1) }} className="t-select">
+              <option value="">Any Rating</option>
+              <option value="3">3+ Stars</option>
+              <option value="4">4+ Stars</option>
+              <option value="4.5">4.5+ Stars</option>
+            </select>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <button onClick={() => { setSelectedSkill(''); setSelectedExperience(''); setMinRating(''); setSearchQuery(''); setPage(1) }} className="t-btn t-btn-outline t-btn-full">Clear</button>
+          </div>
         </div>
       </div>
 
-      {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
+      {error && <div className="t-alert t-alert-error">{error}</div>}
 
       {loading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600">Loading freelancers...</p>
-        </div>
+        <div className="t-spinner"><div className="t-spin" /><span>Loading freelancers…</span></div>
       ) : freelancers.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600">No freelancers found matching your criteria.</p>
-        </div>
+        <div className="t-card"><div className="t-empty"><p className="t-empty-title">No freelancers found</p><p className="t-empty-text">Try adjusting your filters.</p></div></div>
       ) : (
         <>
-          {/* Freelancers Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {freelancers.map((freelancer) => (
-              <div key={freelancer._id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
-                {/* Avatar */}
-                <div className="flex justify-between items-start mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
-                    {getInitials(freelancer.firstName, freelancer.lastName)}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 16, marginBottom: 20 }}>
+            {freelancers.map(f => (
+              <div key={f._id} className="t-card" style={{ padding: 20, transition: 'box-shadow 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 20px rgba(34,197,94,0.15)'}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = 'var(--shadow-sm)'}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 800, color: 'white', flexShrink: 0 }}>
+                    {getInitials(f.firstName, f.lastName)}
                   </div>
-                  {freelancer.rating && (
-                    <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded">
-                      <span className="text-yellow-400">★</span>
-                      <span className="text-sm font-medium text-yellow-700">{freelancer.rating.toFixed(1)}</span>
-                    </div>
-                  )}
+                  {f.rating > 0 && <span style={{ fontSize: 13, fontWeight: 700, color: '#fbbf24' }}>★ {f.rating.toFixed(1)}</span>}
                 </div>
-
-                {/* Name and Title */}
-                <h3 className="text-lg font-bold text-gray-900">
-                  {freelancer.firstName} {freelancer.lastName}
-                </h3>
-                {freelancer.title && (
-                  <p className="text-sm text-blue-600 font-medium">{freelancer.title}</p>
-                )}
-
-                {/* Experience and Rate */}
-                <div className="flex items-center justify-between my-3 text-sm text-gray-600">
-                  <span className="capitalize">{freelancer.experience}</span>
-                  <span className="font-semibold text-gray-900">${freelancer.hourlyRate}/hr</span>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>{f.firstName} {f.lastName}</h3>
+                {f.title && <p style={{ fontSize: 13, color: 'var(--green-dark)', fontWeight: 600, marginBottom: 8 }}>{f.title}</p>}
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--muted)', marginBottom: 10 }}>
+                  <span>{f.experience}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text)' }}>${f.hourlyRate}/hr</span>
                 </div>
-
-                {/* Skills */}
-                {freelancer.skills && freelancer.skills.length > 0 && (
-                  <div className="mb-4">
-                    <div className="flex flex-wrap gap-1">
-                      {freelancer.skills.slice(0, 5).map((skill, index) => (
-                        <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
-                          {skill}
-                        </span>
-                      ))}
-                      {freelancer.skills.length > 5 && (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                          +{freelancer.skills.length - 5}
-                        </span>
-                      )}
-                    </div>
+                {f.skills?.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
+                    {f.skills.slice(0, 4).map((s, i) => <span key={i} className="t-tag">{s}</span>)}
+                    {f.skills.length > 4 && <span className="t-tag">+{f.skills.length - 4}</span>}
                   </div>
                 )}
-
-                {/* Bio snippet */}
-                {freelancer.bio && (
-                  <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-                    {freelancer.bio}
-                  </p>
-                )}
-
-                {/* View Profile Button */}
-                <button
-                  onClick={() => handleViewProfile(freelancer)}
-                  className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-                >
-                  View Profile
-                </button>
+                {f.bio && <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 12, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{f.bio}</p>}
+                <button onClick={() => setSelectedFreelancer(f)} className="t-btn t-btn-primary t-btn-full">View Profile</button>
               </div>
             ))}
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-8">
-              <button
-                onClick={() => setPage(Math.max(1, page - 1))}
-                disabled={page === 1}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <div className="flex gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-                  .map((p, index, arr) => (
-                    <React.Fragment key={p}>
-                      {index > 0 && arr[index - 1] !== p - 1 && <span className="px-2">...</span>}
-                      <button
-                        onClick={() => setPage(p)}
-                        className={`px-3 py-2 rounded-lg ${
-                          page === p
-                            ? 'bg-blue-600 text-white'
-                            : 'border border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    </React.Fragment>
-                  ))}
-              </div>
-              <button
-                onClick={() => setPage(Math.min(totalPages, page + 1))}
-                disabled={page === totalPages}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
+            <div className="t-pages">
+              <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} className="t-page-btn">‹</button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                .map((p, i, arr) => (
+                  <React.Fragment key={p}>
+                    {i > 0 && arr[i - 1] !== p - 1 && <span style={{ color: 'var(--muted)' }}>…</span>}
+                    <button onClick={() => setPage(p)} className={`t-page-btn${page === p ? ' active' : ''}`}>{p}</button>
+                  </React.Fragment>
+                ))}
+              <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages} className="t-page-btn">›</button>
             </div>
           )}
         </>
