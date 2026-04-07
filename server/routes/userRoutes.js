@@ -1,23 +1,32 @@
 import express from 'express'
-
-// TODO: Import user controller functions
-// import { getUserProfile, updateUserProfile, getFreelancers, searchUsers } from '../controllers/userController.js'
-// Import middleware
-// import { authMiddleware } from '../middleware/auth.js'
+import {
+  getUserProfile,
+  getMyProfile,
+  updateUserProfile,
+  getFreelancers,
+  searchUsers,
+  getUserStats,
+} from '../controllers/userController.js'
+import { authMiddleware } from '../middleware/auth.js'
 
 const router = express.Router()
 
-// TODO: Routes
-// GET /api/users/profile - Get user profile (requires auth)
-// router.get('/profile', authMiddleware, getUserProfile)
+// GET /api/users/me - Get current user profile (requires auth)
+router.get('/me', authMiddleware, getMyProfile)
 
-// PUT /api/users/profile - Update user profile (requires auth)
-// router.put('/profile', authMiddleware, updateUserProfile)
+// GET /api/users/freelancers - Get all freelancers (public)
+router.get('/freelancers', getFreelancers)
 
-// GET /api/users/freelancers - Get all freelancers
-// router.get('/freelancers', getFreelancers)
+// GET /api/users/search - Search users (public)
+router.get('/search', searchUsers)
 
-// GET /api/users/search - Search users
-// router.get('/search', searchUsers)
+// GET /api/users/:id - Get user profile by ID (public)
+router.get('/:id', getUserProfile)
+
+// GET /api/users/:id/stats - Get user statistics (public)
+router.get('/:id/stats', getUserStats)
+
+// PUT /api/users/:id - Update user profile (requires auth)
+router.put('/:id', authMiddleware, updateUserProfile)
 
 export default router

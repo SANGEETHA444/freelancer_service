@@ -1,29 +1,33 @@
 import express from 'express'
-
-// TODO: Import project controller functions
-// import { createProject, getAllProjects, getProjectById, updateProject, deleteProject, getProjectsByClient } from '../controllers/projectController.js'
-// Import middleware
-// import { authMiddleware } from '../middleware/auth.js'
+import {
+  createProject,
+  getAllProjects,
+  getProjectById,
+  updateProject,
+  deleteProject,
+  getProjectsByClient,
+} from '../controllers/projectController.js'
+import { authMiddleware, authorizeRole } from '../middleware/auth.js'
+import { validateProject } from '../middleware/validation.js'
 
 const router = express.Router()
 
-// TODO: Routes
-// GET /api/projects - Get all projects
-// router.get('/', getAllProjects)
+// GET /api/projects - Get all projects (public)
+router.get('/', getAllProjects)
 
-// POST /api/projects - Create new project (requires auth)
-// router.post('/', authMiddleware, createProject)
+// POST /api/projects - Create new project (requires auth, client only)
+router.post('/', authMiddleware, authorizeRole(['client']), createProject)
 
-// GET /api/projects/:id - Get project by ID
-// router.get('/:id', getProjectById)
+// GET /api/projects/client/:clientId - Get projects by specific client
+router.get('/client/:clientId', getProjectsByClient)
 
-// PUT /api/projects/:id - Update project (requires auth)
-// router.put('/:id', authMiddleware, updateProject)
+// GET /api/projects/:id - Get project by ID (public)
+router.get('/:id', getProjectById)
 
-// DELETE /api/projects/:id - Delete project (requires auth)
-// router.delete('/:id', authMiddleware, deleteProject)
+// PUT /api/projects/:id - Update project (requires auth, owner only)
+router.put('/:id', authMiddleware, updateProject)
 
-// GET /api/projects/client/:clientId - Get projects by client
-// router.get('/client/:clientId', getProjectsByClient)
+// DELETE /api/projects/:id - Delete project (requires auth, owner only)
+router.delete('/:id', authMiddleware, deleteProject)
 
 export default router

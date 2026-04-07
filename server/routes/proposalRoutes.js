@@ -1,26 +1,32 @@
 import express from 'express'
-
-// TODO: Import proposal controller functions
-// import { createProposal, getProposalsByProject, getProposalsByFreelancer, acceptProposal, rejectProposal } from '../controllers/proposalController.js'
-// Import middleware
-// import { authMiddleware } from '../middleware/auth.js'
+import {
+  createProposal,
+  getProposalsByProject,
+  getProposalsByFreelancer,
+  acceptProposal,
+  rejectProposal,
+  getProposalById,
+} from '../controllers/proposalController.js'
+import { authMiddleware, authorizeRole } from '../middleware/auth.js'
 
 const router = express.Router()
 
-// TODO: Routes
-// POST /api/proposals - Create new proposal (requires auth)
-// router.post('/', authMiddleware, createProposal)
+// POST /api/proposals - Create new proposal (requires auth, freelancer only)
+router.post('/', authMiddleware, authorizeRole(['freelancer']), createProposal)
 
-// GET /api/proposals/project/:projectId - Get proposals for a project
-// router.get('/project/:projectId', getProposalsByProject)
+// GET /api/proposals/:id - Get proposal by ID
+router.get('/:id', authMiddleware, getProposalById)
 
 // GET /api/proposals/freelancer/:freelancerId - Get proposals by freelancer
-// router.get('/freelancer/:freelancerId', getProposalsByFreelancer)
+router.get('/freelancer/:freelancerId', authMiddleware, getProposalsByFreelancer)
 
-// PUT /api/proposals/:id/accept - Accept proposal (requires auth)
-// router.put('/:id/accept', authMiddleware, acceptProposal)
+// GET /api/proposals/project/:projectId - Get proposals for a project (client only)
+router.get('/project/:projectId', authMiddleware, authorizeRole(['client']), getProposalsByProject)
 
-// PUT /api/proposals/:id/reject - Reject proposal (requires auth)
-// router.put('/:id/reject', authMiddleware, rejectProposal)
+// PUT /api/proposals/:id/accept - Accept proposal (requires auth, client only)
+router.put('/:id/accept', authMiddleware, authorizeRole(['client']), acceptProposal)
+
+// PUT /api/proposals/:id/reject - Reject proposal (requires auth, client only)
+router.put('/:id/reject', authMiddleware, authorizeRole(['client']), rejectProposal)
 
 export default router

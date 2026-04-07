@@ -5,6 +5,8 @@ function Login() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
+  const [apiError, setApiError] = useState('')
 
   const validate = () => {
     const fieldErrors = {}
@@ -17,8 +19,6 @@ function Login() {
 
     if (!form.password) {
       fieldErrors.password = 'Password is required'
-    } else if (form.password.length < 5) {
-      fieldErrors.password = 'Password must be at least 5 characters'
     }
 
     return fieldErrors
@@ -28,16 +28,49 @@ function Login() {
     const { name, value } = event.target
     setForm((prev) => ({ ...prev, [name]: value }))
     setErrors((prev) => ({ ...prev, [name]: undefined }))
+    setApiError('')
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     const fieldErrors = validate()
     setErrors(fieldErrors)
 
     if (Object.keys(fieldErrors).length === 0) {
-      const userRole = localStorage.getItem('userRole') || 'freelancer'
-      navigate(userRole === 'client' ? '/customer/dashboard' : '/freelancer/dashboard')
+      setLoading(true)
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          setApiError(data.message || 'Login failed')
+          return
+        }
+
+        // Store token and user info
+        localStorage.setItem('token', data.token)
+        localStorage.setItem('userRole', data.user.role)
+        localStorage.setItem('userId', data.user.id)
+        localStorage.setItem('userName', `${data.user.firstName} ${data.user.lastName}`)
+
+        // Navigate to appropriate dashboard
+        navigate(data.user.role === 'client' ? '/customer/dashboard' : '/freelancer/dashboard')
+      } catch (error) {
+        console.error('Login error:', error)
+        setApiError('Network error. Please try again.')
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
@@ -49,6 +82,12 @@ function Login() {
           <h1 className="mt-3 text-3xl font-semibold text-slate-950">Log in to your account</h1>
           <p className="mt-3 text-sm text-slate-600">Enter your credentials to continue to the dashboard.</p>
         </div>
+
+        {apiError && (
+          <div className="mb-5 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            {apiError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} noValidate className="space-y-5">
           <label className="block">
@@ -79,9 +118,10 @@ function Login() {
 
           <button
             type="submit"
-            className="w-full rounded-3xl bg-slate-950 px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-slate-800"
+            disabled={loading}
+            className="w-full rounded-3xl bg-slate-950 px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-slate-800 disabled:opacity-50"
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 

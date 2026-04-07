@@ -1,11 +1,47 @@
-﻿import React from 'react'
+﻿import React, { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 function FreeLogout() {
+  const navigate = useNavigate()
+  const token = localStorage.getItem('token')
+
+  useEffect(() => {
+    const performLogout = async () => {
+      try {
+        // Call logout endpoint to clear server-side session
+        if (token) {
+          await fetch('http://localhost:5000/api/auth/logout', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          })
+        }
+      } catch (error) {
+        console.error('Logout error:', error)
+      } finally {
+        // Clear local storage
+        localStorage.removeItem('token')
+        localStorage.removeItem('userRole')
+        localStorage.removeItem('userId')
+        localStorage.removeItem('userName')
+
+        // Redirect to login
+        navigate('/login', { replace: true })
+      }
+    }
+
+    performLogout()
+  }, [navigate, token])
+
   return (
-    <div>
-      <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Logout</p>
-      <h2 className="mt-3 text-2xl font-semibold text-slate-950">Free Logout</h2>
-      <p className="mt-4 text-slate-600">Placeholder for logout flow or confirmation.</p>
+    <div className="flex flex-col items-center justify-center py-12">
+      <div className="text-center">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600 mb-4"></div>
+        <p className="text-gray-600 text-lg">Logging you out...</p>
+        <p className="text-gray-500 text-sm mt-2">You will be redirected shortly</p>
+      </div>
     </div>
   )
 }

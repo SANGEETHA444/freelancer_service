@@ -4,18 +4,22 @@ import { Link, useNavigate } from 'react-router-dom'
 function Signup() {
   const navigate = useNavigate()
   const [form, setForm] = useState({
-    username: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirm: '',
     role: 'freelancer',
   })
   const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
+  const [apiError, setApiError] = useState('')
 
   const validate = () => {
     const fieldErrors = {}
 
-    if (!form.username.trim()) fieldErrors.username = 'Username is required'
+    if (!form.firstName.trim()) fieldErrors.firstName = 'First name is required'
+    if (!form.lastName.trim()) fieldErrors.lastName = 'Last name is required'
     if (!form.email.trim()) {
       fieldErrors.email = 'Email is required'
     } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
@@ -24,8 +28,8 @@ function Signup() {
 
     if (!form.password) {
       fieldErrors.password = 'Password is required'
-    } else if (form.password.length < 5) {
-      fieldErrors.password = 'Password must be at least 5 characters'
+    } else if (form.password.length < 6) {
+      fieldErrors.password = 'Password must be at least 6 characters'
     }
 
     if (!form.confirm) {
@@ -43,16 +47,50 @@ function Signup() {
     const { name, value } = event.target
     setForm((prev) => ({ ...prev, [name]: value }))
     setErrors((prev) => ({ ...prev, [name]: undefined }))
+    setApiError('')
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     const fieldErrors = validate()
     setErrors(fieldErrors)
 
     if (Object.keys(fieldErrors).length === 0) {
-      localStorage.setItem('userRole', form.role)
-      navigate('/login')
+      setLoading(true)
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            firstName: form.firstName,
+            lastName: form.lastName,
+            email: form.email,
+            password: form.password,
+            role: form.role,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          setApiError(data.message || 'Signup failed')
+          return
+        }
+
+        localStorage.setItem('token', data.token)
+        localStorage.setItem('userRole', form.role)
+        localStorage.setItem('userId', data.user.id)
+        localStorage.setItem('userName', `${data.user.firstName} ${data.user.lastName}`)
+
+        navigate(form.role === 'client' ? '/customer/dashboard' : '/freelancer/dashboard')
+      } catch (error) {
+        console.error('Signup error:', error)
+        setApiError('Network error. Please try again.')
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
@@ -65,18 +103,38 @@ function Signup() {
           <p className="mt-3 text-sm text-slate-600">Complete the form below and log in to continue.</p>
         </div>
 
+        {apiError && (
+          <div className="mb-5 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            {apiError}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} noValidate className="space-y-5">
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Username</span>
-            <input
-              name="username"
-              value={form.username}
-              onChange={handleChange}
-              className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-              placeholder="Enter username"
-            />
-            {errors.username && <p className="mt-2 text-sm text-red-600">{errors.username}</p>}
-          </label>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">First Name</span>
+              <input
+                name="firstName"
+                value={form.firstName}
+                onChange={handleChange}
+                className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                placeholder="First name"
+              />
+              {errors.firstName && <p className="mt-2 text-sm text-red-600">{errors.firstName}</p>}
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">Last Name</span>
+              <input
+                name="lastName"
+                value={form.lastName}
+                onChange={handleChange}
+                className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                placeholder="Last name"
+              />
+              {errors.lastName && <p className="mt-2 text-sm text-red-600">{errors.lastName}</p>}
+            </label>
+          </div>
 
           <label className="block">
             <span className="text-sm font-medium text-slate-700">Email</span>
@@ -135,9 +193,10 @@ function Signup() {
 
           <button
             type="submit"
-            className="w-full rounded-3xl bg-slate-950 px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-slate-800"
+            disabled={loading}
+            className="w-full rounded-3xl bg-slate-950 px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-slate-800 disabled:opacity-50"
           >
-            Sign up
+            {loading ? 'Signing up...' : 'Sign up'}
           </button>
         </form>
 
