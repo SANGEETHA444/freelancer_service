@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const FreeProfile = () => {
@@ -19,10 +19,10 @@ const FreeProfile = () => {
     title: '',
     bio: '',
     skills: '',
-    experience: 'entry',
+    experience: 'Beginner',
     hourlyRate: '',
     portfolio: '',
-    availability: 'part-time',
+    availability: 'Part-time',
   })
 
   useEffect(() => {
@@ -49,17 +49,18 @@ const FreeProfile = () => {
       }
 
       const data = await response.json()
-      setProfile(data)
+      const user = data.data
+      setProfile(user)
       setEditData({
-        firstName: data.firstName || '',
-        lastName: data.lastName || '',
-        title: data.title || '',
-        bio: data.bio || '',
-        skills: data.skills?.join(', ') || '',
-        experience: data.experience || 'entry',
-        hourlyRate: data.hourlyRate || '',
-        portfolio: data.portfolio || '',
-        availability: data.availability || 'part-time',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        title: user.title || '',
+        bio: user.bio || '',
+        skills: user.skills?.join(', ') || '',
+        experience: user.experience || 'Beginner',
+        hourlyRate: user.hourlyRate || '',
+        portfolio: user.portfolio || '',
+        availability: user.availability || 'Part-time',
       })
     } catch (err) {
       setError(err.message)
@@ -82,7 +83,7 @@ const FreeProfile = () => {
       }
 
       const data = await response.json()
-      setStats(data)
+      setStats(data.data?.stats || {})
     } catch (err) {
       console.error('Error fetching stats:', err)
     }
@@ -128,7 +129,7 @@ const FreeProfile = () => {
       }
 
       const updatedProfile = await response.json()
-      setProfile(updatedProfile)
+      setProfile(updatedProfile.data)
       setIsEditing(false)
       setSuccessMessage('Profile updated successfully!')
       setTimeout(() => setSuccessMessage(''), 3000)
@@ -170,11 +171,12 @@ const FreeProfile = () => {
                   title: profile.title || '',
                   bio: profile.bio || '',
                   skills: profile.skills?.join(', ') || '',
-                  experience: profile.experience || 'entry',
+                  experience: profile.experience || 'Beginner',
                   hourlyRate: profile.hourlyRate || '',
                   portfolio: profile.portfolio || '',
-                  availability: profile.availability || 'part-time',
+                  availability: profile.availability || 'Part-time',
                 })
+                setError('')
               }
               setIsEditing(!isEditing)
             }}
@@ -353,9 +355,9 @@ const FreeProfile = () => {
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="entry">Entry Level</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="expert">Expert</option>
+                  <option value="Beginner">Entry Level</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Expert">Expert</option>
                   </select>
                 </div>
                 <div>
@@ -379,9 +381,9 @@ const FreeProfile = () => {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="part-time">Part-time</option>
-                  <option value="full-time">Full-time</option>
-                  <option value="contract">Contract</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Full-time">Full-time</option>
+                  <option value="Freelance">Freelance</option>
                 </select>
               </div>
 

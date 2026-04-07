@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const CustomerProfile = () => {
@@ -46,14 +46,15 @@ const CustomerProfile = () => {
       }
 
       const data = await response.json()
-      setProfile(data)
+      const user = data.data
+      setProfile(user)
       setEditData({
-        firstName: data.firstName || '',
-        lastName: data.lastName || '',
-        company: data.company || '',
-        title: data.title || '',
-        bio: data.bio || '',
-        phone: data.phone || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        company: user.company || '',
+        title: user.title || '',
+        bio: user.bio || '',
+        phone: user.phone || '',
       })
     } catch (err) {
       setError(err.message)
@@ -76,7 +77,7 @@ const CustomerProfile = () => {
       }
 
       const data = await response.json()
-      setStats(data)
+      setStats(data.data?.stats || {})
     } catch (err) {
       console.error('Error fetching stats:', err)
     }
@@ -119,7 +120,7 @@ const CustomerProfile = () => {
       }
 
       const updatedProfile = await response.json()
-      setProfile(updatedProfile)
+      setProfile(updatedProfile.data)
       setIsEditing(false)
       setSuccessMessage('Profile updated successfully!')
       setTimeout(() => setSuccessMessage(''), 3000)
@@ -163,6 +164,7 @@ const CustomerProfile = () => {
                   bio: profile.bio || '',
                   phone: profile.phone || '',
                 })
+                setError('')
               }
               setIsEditing(!isEditing)
             }}

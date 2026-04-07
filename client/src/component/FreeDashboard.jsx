@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const FreeDashboard = () => {
@@ -45,15 +45,16 @@ const FreeDashboard = () => {
         const proposalsData = await proposalsRes.json()
         const ratingData = await ratingRes.json()
 
+        const s = statsData.data?.stats || {}
         setStats({
-          totalProposals: statsData.totalProposals || 0,
-          acceptedProposals: statsData.acceptedProposals || 0,
-          pendingProposals: statsData.pendingProposals || 0,
+          totalProposals: s.totalProposals || 0,
+          acceptedProposals: s.acceptedProposals || 0,
+          pendingProposals: s.pendingProposals || 0,
           averageRating: ratingData.averageRating || 0,
         })
 
         // Get last 5 proposals
-        setRecentProposals((proposalsData || []).slice(0, 5))
+        setRecentProposals((proposalsData.data || []).slice(0, 5))
       }
     } catch (err) {
       console.error('Error fetching dashboard data:', err)

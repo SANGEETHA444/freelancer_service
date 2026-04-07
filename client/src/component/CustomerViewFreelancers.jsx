@@ -55,8 +55,8 @@ const CustomerViewFreelancers = () => {
       }
 
       const data = await response.json()
-      setFreelancers(data.freelancers || [])
-      setTotalPages(data.totalPages || 1)
+      setFreelancers(data.data || [])
+      setTotalPages(data.pagination?.pages || 1)
     } catch (err) {
       setError(err.message)
       setFreelancers([])
@@ -88,7 +88,7 @@ const CustomerViewFreelancers = () => {
       }
 
       const data = await response.json()
-      setFreelancers(data || [])
+      setFreelancers(data.data || [])
       setPage(1)
       setSelectedSkill('')
       setSelectedExperience('')

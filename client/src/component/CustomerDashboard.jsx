@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const CustomerDashboard = () => {
@@ -41,10 +41,11 @@ const CustomerDashboard = () => {
         const statsData = await statsRes.json()
         const projectsData = await projectsRes.json()
 
+        const s = statsData.data?.stats || {}
         setStats({
-          totalProjects: statsData.totalProjects || 0,
-          openProjects: statsData.openProjects || 0,
-          completedProjects: statsData.completedProjects || 0,
+          totalProjects: s.totalProjects || 0,
+          openProjects: s.openProjects || 0,
+          completedProjects: s.completedProjects || 0,
         })
 
         // Calculate total budget and get recent projects

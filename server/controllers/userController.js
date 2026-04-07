@@ -1,5 +1,6 @@
 import User from '../models/User.js'
 import Proposal from '../models/Proposal.js'
+import Project from '../models/Project.js'
 
 // @desc    Get user profile by ID
 // @route   GET /api/users/:id
@@ -279,7 +280,6 @@ export const getUserStats = async (req, res) => {
       }
     } else {
       // Client stats
-      const { Project } = await import('../models/Project.js')
       const totalProjects = await Project.countDocuments({ client: id })
       const openProjects = await Project.countDocuments({ client: id, status: 'open' })
       const completedProjects = await Project.countDocuments({

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 function CustomerNewProject() {
@@ -121,143 +121,73 @@ function CustomerNewProject() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-2xl rounded-[32px] bg-white p-8 shadow-xl shadow-slate-200/40">
-        <div className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-600">New Project</p>
-          <h1 className="mt-3 text-3xl font-semibold text-slate-950">Post a New Project</h1>
-          <p className="mt-2 text-slate-600">Fill in the details below to post your project and connect with freelancers.</p>
-        </div>
+    <div>
+      <div className="af-page-header">
+        <p style={{fontSize:11, fontWeight:700, color:'var(--orange)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6}}>New Project</p>
+        <h1 className="af-page-title">Post a New Project</h1>
+        <p className="af-page-subtitle">Fill in the details below to post your project and connect with freelancers.</p>
+      </div>
 
-        {apiError && (
-          <div className="mb-6 rounded-lg bg-red-50 p-3 text-sm text-red-600">
-            {apiError}
+      <div className="af-card" style={{maxWidth:680}}>
+        <div className="af-card-body">
+
+        {apiError && <div className="af-alert af-alert-error">{apiError}</div>}
+
+        <form onSubmit={handleSubmit} style={{display:'flex', flexDirection:'column', gap:18}}>
+          <div>
+            <label className="af-label">Project Title</label>
+            <input type="text" name="title" value={form.title} onChange={handleChange} placeholder="e.g., Build a React Dashboard" className={`af-input${errors.title?' error':''}`} />
+            {errors.title && <p className="af-field-error">{errors.title}</p>}
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Title */}
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Project Title</span>
-            <input
-              type="text"
-              name="title"
-              value={form.title}
-              onChange={handleChange}
-              placeholder="e.g., Build a React Dashboard"
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-            />
-            {errors.title && <p className="mt-2 text-sm text-red-600">{errors.title}</p>}
-          </label>
+          <div>
+            <label className="af-label">Project Description</label>
+            <textarea name="description" value={form.description} onChange={handleChange} rows="5" placeholder="Provide detailed information about your project..." className={`af-textarea${errors.description?' error':''}`} />
+            {errors.description && <p className="af-field-error">{errors.description}</p>}
+          </div>
 
-          {/* Description */}
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Project Description</span>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              rows="6"
-              placeholder="Provide detailed information about your project, requirements, and expectations..."
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-            />
-            {errors.description && <p className="mt-2 text-sm text-red-600">{errors.description}</p>}
-          </label>
-
-          {/* Category */}
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Category</span>
-            <select
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
+          <div>
+            <label className="af-label">Category</label>
+            <select name="category" value={form.category} onChange={handleChange} className="af-select">
+              {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
             </select>
-            {errors.category && <p className="mt-2 text-sm text-red-600">{errors.category}</p>}
-          </label>
-
-          {/* Budget and Deadline */}
-          <div className="grid gap-5 sm:grid-cols-2">
-            <label className="block">
-              <span className="text-sm font-medium text-slate-700">Budget (USD)</span>
-              <input
-                type="number"
-                name="budget"
-                value={form.budget}
-                onChange={handleChange}
-                placeholder="e.g., 5000"
-                step="0.01"
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-              />
-              {errors.budget && <p className="mt-2 text-sm text-red-600">{errors.budget}</p>}
-            </label>
-
-            <label className="block">
-              <span className="text-sm font-medium text-slate-700">Deadline</span>
-              <input
-                type="datetime-local"
-                name="deadline"
-                value={form.deadline}
-                onChange={handleChange}
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-              />
-              {errors.deadline && <p className="mt-2 text-sm text-red-600">{errors.deadline}</p>}
-            </label>
+            {errors.category && <p className="af-field-error">{errors.category}</p>}
           </div>
 
-          {/* Experience Level and Skills */}
-          <div className="grid gap-5 sm:grid-cols-2">
-            <label className="block">
-              <span className="text-sm font-medium text-slate-700">Experience Level Required</span>
-              <select
-                name="experience"
-                value={form.experience}
-                onChange={handleChange}
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-              >
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:14}}>
+            <div>
+              <label className="af-label">Budget (USD)</label>
+              <input type="number" name="budget" value={form.budget} onChange={handleChange} placeholder="e.g., 5000" step="0.01" className={`af-input${errors.budget?' error':''}`} />
+              {errors.budget && <p className="af-field-error">{errors.budget}</p>}
+            </div>
+            <div>
+              <label className="af-label">Deadline</label>
+              <input type="datetime-local" name="deadline" value={form.deadline} onChange={handleChange} className={`af-input${errors.deadline?' error':''}`} />
+              {errors.deadline && <p className="af-field-error">{errors.deadline}</p>}
+            </div>
+          </div>
+
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:14}}>
+            <div>
+              <label className="af-label">Experience Level Required</label>
+              <select name="experience" value={form.experience} onChange={handleChange} className="af-select">
                 <option value="Beginner">Beginner</option>
                 <option value="Intermediate">Intermediate</option>
                 <option value="Expert">Expert</option>
               </select>
-            </label>
-
-            <label className="block">
-              <span className="text-sm font-medium text-slate-700">Required Skills (comma separated)</span>
-              <input
-                type="text"
-                name="requiredSkills"
-                value={form.requiredSkills}
-                onChange={handleChange}
-                placeholder="e.g., React, Node.js, MongoDB"
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-              />
-            </label>
+            </div>
+            <div>
+              <label className="af-label">Required Skills (comma separated)</label>
+              <input type="text" name="requiredSkills" value={form.requiredSkills} onChange={handleChange} placeholder="e.g., React, Node.js" className="af-input" />
+            </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="flex gap-4 pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:opacity-50"
-            >
-              {loading ? 'Creating Project...' : 'Create Project'}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/customer/dashboard')}
-              className="flex-1 rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
-            >
-              Cancel
-            </button>
+          <div style={{display:'flex', gap:12, paddingTop:4}}>
+            <button type="submit" disabled={loading} className="af-btn af-btn-primary af-btn-lg af-btn-full">{loading ? 'Creating Project…' : 'Create Project'}</button>
+            <button type="button" onClick={() => navigate('/customer/dashboard')} className="af-btn af-btn-outline af-btn-lg af-btn-full">Cancel</button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   )
