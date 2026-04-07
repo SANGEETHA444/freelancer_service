@@ -51,6 +51,7 @@ function Signup() {
     setErrors(fieldErrors)
 
     if (Object.keys(fieldErrors).length === 0) {
+      localStorage.setItem('userRole', form.role)
       navigate('/login')
     }
   }
@@ -60,7 +61,7 @@ function Signup() {
       <div className="mx-auto max-w-xl rounded-[32px] bg-white p-8 shadow-xl shadow-slate-200/40">
         <div className="mb-8 text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-600">Create account</p>
-          <h1 className="mt-3 text-3xl font-semibold text-slate-950">Sign up for a freelancer account</h1>
+          <h1 className="mt-3 text-3xl font-semibold text-slate-950">Sign up for a new account</h1>
           <p className="mt-3 text-sm text-slate-600">Complete the form below and log in to continue.</p>
         </div>
 

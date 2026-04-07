@@ -36,7 +36,8 @@ function Login() {
     setErrors(fieldErrors)
 
     if (Object.keys(fieldErrors).length === 0) {
-      navigate('/freedash')
+      const userRole = localStorage.getItem('userRole') || 'freelancer'
+      navigate(userRole === 'client' ? '/customer/dashboard' : '/freelancer/dashboard')
     }
   }
 

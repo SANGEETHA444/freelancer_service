@@ -1,15 +1,15 @@
-﻿import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet } from 'react-router-dom'
 
 const navItems = [
-  { path: '/freelancer/dashboard', label: 'Dashboard' },
-  { path: '/freelancer/view-projects', label: 'View Projects' },
-  { path: '/freelancer/my-activity', label: 'My Activity' },
-  { path: '/freelancer/reviews', label: 'My Reviews & Feedbacks' },
-  { path: '/freelancer/profile', label: 'Profile' },
-  { path: '/freelancer/logout', label: 'Logout' },
+  { path: '/customer/dashboard', label: 'Dashboard' },
+  { path: '/customer/new-project', label: 'New Project' },
+  { path: '/customer/view-freelancers', label: 'View Freelancers' },
+  { path: '/customer/my-activity', label: 'My Activity' },
+  { path: '/customer/profile', label: 'Profile' },
+  { path: '/customer/logout', label: 'Logout' },
 ]
 
-function FreelancerDashboard() {
+function UserDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -43,4 +43,4 @@ function FreelancerDashboard() {
   )
 }
 
-export default FreelancerDashboard
+export default UserDashboard
